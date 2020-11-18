@@ -226,7 +226,7 @@ def run_query(query, batch_size, question):
             continue
         if not started:
             continue
-        lines.append(row)
+        lines.append(row.encode('ascii', errors='replace').decode('ascii'))
     if errored:
         print("WARNING: The following error occurred while running your query for {}\n".format(question))
         print("\n".join(lines))
