@@ -8,6 +8,11 @@ import difflib
 import re
 from collections import OrderedDict
 
+# Certain movies have duplicate entries, which affect these
+# queries. If you happen to handle duplicates in your query,
+# then we consider your solution for those correct.
+alts = ['q1i', 'q2ii', 'q2iii']
+
 object_id_re = re.compile("ObjectId\(\"[0123456789abcdef]*\"\)", flags=re.IGNORECASE)
 
 def replace_object_id(document):
@@ -134,10 +139,14 @@ def check_matching_values(actual, expected, test_name):
         return "PASS"
     return "FAIL - see diffs/{}.diff".format(test_name)
 
-def check_diff(test_name):
+def check_diff(test_name, use_alt=False):
     expected = []
     actual = []
-    with open(os.path.join('expected_output', test_name + '.dat'), 'rt') as f:
+    if use_alt:
+        expected_path = os.path.join('expected_output', test_name + '-alt.dat')
+    else:
+        expected_path = os.path.join('expected_output', test_name + '.dat')
+    with open(expected_path, 'rt') as f:
         for line in f.readlines():
             line = line.strip()
             if line: # ignore empty lines
@@ -295,6 +304,11 @@ if __name__ == "__main__":
             f.write(result)
         if not args.gen:
             try:
+                if test_name in alts:
+                    result = check_diff (test_name, use_alt=True)
+                    if result.startswith("PASS"):
+                        print("{:5}".format(test_name), result)
+                        continue
                 result = check_diff (test_name)
             except:
                 print(test_name, "ERROR:")
